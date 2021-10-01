@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  todoapp:
+    build: .
+    ports: 
+      - 8000:8000
+    env_file:
+      - example.env
+    depends_on:
+      - postgres
+    
+  postgres:
+    image: postgres:13-alpine
+    restart: always
+    env_file:
+      - example.env
+    volumes:
+    - ./postgres/data:/var/lib/postgresql/data
+    - ./postgres/dumps:/dumps
