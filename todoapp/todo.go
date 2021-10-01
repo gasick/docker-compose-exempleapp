@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"os"
 
 	// "fmt"
 	"log"
@@ -22,7 +24,7 @@ type Todo struct {
 
 func main() {
 	initDB()
-	// fmt.Printf("it worked!")
+	migrateDB()
 
 	initRouter()
 }
@@ -73,9 +75,31 @@ var CreateTodo = func(w http.ResponseWriter, r *http.Request) {
 
 // hook up to postgres db
 func initDB() {
+	hostname := os.Getenv("POSTGRES_HOST")
+	port := os.Getenv("POSTGRES_PORT")
+	database := os.Getenv("POSTGRES_DB")
+	username := os.Getenv("POSTGRES_USER")
+	password := os.Getenv("POSTGRES_PASSWORD")
+	initDBParams := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		hostname, port, username, password, database)
 	var err error
-	db, err = sql.Open("postgres", "dbname=gotodo sslmode=disable")
+	db, err = sql.Open("postgres", initDBParams)
 
+	if err != nil {
+		panic(err)
+	}
+}
+
+func migrateDB() {
+	sql := `
+		create table todos (
+			id serial primary key,
+			name text,
+			description text
+		);
+	`
+
+	_, err := db.Exec(sql)
 	if err != nil {
 		panic(err)
 	}
